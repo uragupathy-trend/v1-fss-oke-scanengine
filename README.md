@@ -1,6 +1,6 @@
 # Vision One File Security Scanner - OKE Scanning Engine
 
-Automated deployment of Oracle Kubernetes Engine (OKE) cluster optimized for Trend Micro Vision One File Security Scanner workloads. This solution provides scalable, containerized malware scanning capabilities in Oracle Cloud Infrastructure.
+Automated deployment of Oracle Kubernetes Engine (OKE) cluster optimized for Trend Micro Vision One File Security Scanner workloads. This solution provides scalable, localised malware scanning capabilities in Oracle Cloud Infrastructure.
 
 ## Architecture
 
@@ -211,7 +211,15 @@ max_node_count     = 2
 # ==============================================================================
 # NODE IMAGE (Optional - leave empty for automatic selection)
 # ==============================================================================
-node_image_ocid = "ocid1.image.oc1.ap-sydney-1.aaaaaaaaeoyqg3rw2ysklysrxjal3zbhmin4r5npnj3fdehw544itwskshoq"
+
+oci compute image list \
+    --compartment-id ocid1.compartment.oc1..aaaaaaaaw... \
+    --shape VM.Standard.E5.Flex \
+    --lifecycle-state AVAILABLE \
+    --operating-system "Oracle Linux" \
+    --operating-system-version "8"
+
+node_image_ocid = "ocid1.image.oc1.ap-sydney-1.aaaaaaaae......"
 ```
 
 ### 2. Deploy Infrastructure
@@ -256,7 +264,10 @@ The deployment script automatically:
 
 ```bash
 # Deploy with Vision One token (required)
-V1_FSS_TOKEN='your-vision-one-token' ./deploy-v1-fss.sh install
+
+Add V1_FSS_TOKEN='your-vision-one-token' as environment variable
+
+./deploy-v1-fss.sh install
 
 # Remove Vision One File Security
 ./deploy-v1-fss.sh uninstall

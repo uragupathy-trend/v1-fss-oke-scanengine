@@ -6,50 +6,123 @@ Automated deployment of Oracle Kubernetes Engine (OKE) cluster optimized for Tre
 
 ```mermaid
 flowchart TB
-    A[Application/User] --> B[Load Balancer]
-    B --> C[OKE Cluster]
-    C --> D[Vision One FSS Pods]
-    D --> E[Vision One API]
-    E --> F[Scan Results]
-    F --> G[Object Storage]
-    F --> H[Application Response]
-    
-    subgraph OKE["OKE Cluster"]
-        C1[Worker Node 1]
-        C2[Worker Node 2]
-        C3[Worker Node 3]
-        C1 --> D
-        C2 --> D
-        C3 --> D
+    subgraph VCN["OCI VCN (Virtual Cloud Network)"]
+        subgraph APISubnet["API Endpoint Subnet"]
+            API[OKE API Endpoint]
+        end
+        
+        subgraph WorkerSubnet["Worker Node Subnet"]
+            WN1[Worker Node 1<br/>VM.Standard.E5.Flex<br/>1 OCPU, 16GB RAM]
+            WN2[Worker Node 2]
+            WN3[Worker Node N...]
+        end
+        
+        subgraph LBSubnet["Load Balancer Subnet"]
+            LB[OCI Load Balancer]
+        end
+        
+        subgraph ClusterNetwork["OKE Cluster Network"]
+            subgraph PodCIDR["Pod CIDR: 10.244.0.0/16"]
+                FSS1[FSS Scanner Pod]
+                FSS2[FSS Scanner Pod]
+                FSS3[FSS Scanner Pod]
+            end
+            
+            subgraph ServiceCIDR["Service CIDR: 10.96.0.0/16"]
+                FSSSVC[FSS Service]
+            end
+        end
     end
     
-    subgraph Registry["OCIR Registry"]
-        I[FSS Container Images]
+    subgraph External["External Components"]
+        USER[Client Applications]
+        V1API[Vision One API<br/>Cloud Intelligence]
+        OCIR[OCIR Registry<br/>FSS Container Images]
+        ObjStore[Object Storage<br/>Scan Results & Logs]
     end
     
-    I --> D
+    subgraph IAM["IAM & Security"]
+        DG1[Cluster Service<br/>Dynamic Group]
+        DG2[Worker Nodes<br/>Dynamic Group]
+        POL1[Cluster Service Policy]
+        POL2[Worker Nodes Policy]
+        POL3[Autoscaling Policy]
+    end
     
-    style A fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
-    style B fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
-    style C fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
-    style D fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
-    style E fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
-    style F fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
-    style G fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
-    style H fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
-    style C1 fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
-    style C2 fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
-    style C3 fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
-    style I fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
+    USER --> LB
+    LB --> FSSSVC
+    FSSSVC --> FSS1
+    FSSSVC --> FSS2
+    FSSSVC --> FSS3
+    
+    FSS1 --> V1API
+    FSS2 --> V1API
+    FSS3 --> V1API
+    
+    OCIR --> FSS1
+    OCIR --> FSS2
+    OCIR --> FSS3
+    
+    FSS1 --> ObjStore
+    FSS2 --> ObjStore
+    FSS3 --> ObjStore
+    
+    WN1 --> FSS1
+    WN2 --> FSS2
+    WN3 --> FSS3
+    
+    API -.-> WN1
+    API -.-> WN2
+    API -.-> WN3
+    
+    DG1 -.-> POL1
+    DG2 -.-> POL2
+    DG1 -.-> POL3
+    
+    style USER fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
+    style LB fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
+    style API fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
+    style WN1 fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
+    style WN2 fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
+    style WN3 fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
+    style FSS1 fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
+    style FSS2 fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
+    style FSS3 fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
+    style FSSSVC fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
+    style V1API fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
+    style OCIR fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
+    style ObjStore fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
+    style DG1 fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
+    style DG2 fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
+    style POL1 fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
+    style POL2 fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
+    style POL3 fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
 ```
 
-**Components:**
-- **OKE Cluster**: Managed Kubernetes service for hosting FSS containers
-- **Load Balancer**: Distributes scanning requests across FSS pods
-- **Vision One FSS Pods**: Containerized scanning engines with auto-scaling
+**Standard OKE Architecture Components:**
+
+**Networking Layer:**
+- **VCN (Virtual Cloud Network)**: Isolated network environment for OKE cluster
+- **API Endpoint Subnet**: Hosts OKE cluster API endpoint (public/private configurable)
+- **Worker Node Subnet**: Private subnet hosting Kubernetes worker nodes
+- **Load Balancer Subnet**: Subnet for OCI Load Balancer services
+- **Pod CIDR (10.244.0.0/16)**: Network range for Kubernetes pods
+- **Service CIDR (10.96.0.0/16)**: Network range for Kubernetes services
+
+**Compute Layer:**
+- **OKE Cluster**: Managed Kubernetes control plane
+- **Worker Node Pool**: Auto-scaling VM.Standard.E5.Flex instances (1 OCPU, 16GB RAM)
+- **FSS Scanner Pods**: Containerized Vision One File Security Scanner instances
+
+**Security Layer:**
+- **Dynamic Groups**: Identity-based access control for cluster and worker nodes
+- **IAM Policies**: Least-privilege permissions for cluster operations
+- **Network Security**: Private subnets with controlled ingress/egress
+
+**External Integration:**
 - **OCIR Registry**: Private container registry for FSS images
 - **Vision One API**: Cloud-based threat intelligence and scanning backend
-- **Object Storage**: Stores scan results, logs, and configuration data
+- **Object Storage**: Persistent storage for scan results and configuration
 
 ## Prerequisites
 
@@ -89,31 +162,56 @@ cp terraform/terraform.tfvars.example terraform/terraform.tfvars
 Edit `terraform/terraform.tfvars` with your values:
 
 ```hcl
-# OCI Authentication
-tenancy_ocid     = "ocid1.tenancy.oc1..your-tenancy-id"
-user_ocid        = "ocid1.user.oc1..your-user-id"
-fingerprint      = "your-api-key-fingerprint"
-private_key_path = "/path/to/your/private/key.pem"
-region           = "us-ashburn-1"
+# ==============================================================================
+# PROVIDER CONFIGURATION
+# ==============================================================================
+tenancy_ocid     = "ocid1.tenancy.oc1..aaaaaaaas......"
+user_ocid        = "ocid1.user.oc1..aaaaaaaam....."
+fingerprint      = "aa:bb:cc:dd:ee:ff:gg:hh:ii:jj:kk:ll:mm:nn:oo:pp"
+private_key_path = "~/.oci/oci_api_key.pem"
+region           = "ap-sydney-1"
 
-# Compartment and Networking
-compartment_ocid            = "ocid1.compartment.oc1..your-compartment-id"
-vcn_ocid                   = "ocid1.vcn.oc1..your-vcn-id"
-api_endpoint_subnet_ocid   = "ocid1.subnet.oc1..your-api-subnet-id"
-worker_node_subnet_ocid    = "ocid1.subnet.oc1..your-worker-subnet-id"
-load_balancer_subnet_ocid  = "ocid1.subnet.oc1..your-lb-subnet-id"
+# ==============================================================================
+# INFRASTRUCTURE
+# ==============================================================================
+compartment_ocid           = "ocid1.compartment.oc1..aaaaaaaaws...."
+vcn_ocid                  = "ocid1.vcn.oc1.ap-sydney-1.amaaaaaa......."
+api_endpoint_subnet_ocid   = "ocid1.subnet.oc1.ap-sydney-1.aaaaaaaa........"
+worker_node_subnet_ocid    = "ocid1.subnet.oc1.ap-sydney-1.aaaaaaaav.........."
+load_balancer_subnet_ocid  = "ocid1.subnet.oc1.ap-sydney-1.aaaaaaaafs........"
 
-# Optional: Cluster Configuration
-cluster_name               = "fss-oke-cluster"
-kubernetes_version         = "v1.28.2"
-cluster_endpoint_visibility = "Private"
+# ==============================================================================
+# CLUSTER CONFIGURATION
+# ==============================================================================
+cluster_name         = "fss-oke-scanengine"
+kubernetes_version   = "v1.34.1"
+environment         = "production"
 
-# Optional: Node Pool Configuration
-node_pool_size             = 3
-node_pool_max_size        = 10
-node_shape                = "VM.Standard.E4.Flex"
-node_shape_ocpus          = 2
-node_shape_memory_gb      = 32
+# ==============================================================================
+# NODE POOL CONFIGURATION
+# ==============================================================================
+node_pool_size = 1
+node_shape  = "VM.Standard.E5.Flex"
+node_memory_gb = 16
+node_shape_ocpus = 1
+node_boot_volume_size_gb = 50
+
+# ==============================================================================
+# AVAILABILITY DOMAINS
+# ==============================================================================
+availability_domains = ["availability_domains"]
+
+# ==============================================================================
+# SCALING CONFIGURATION
+# ==============================================================================
+enable_autoscaling = false
+min_node_count     = 1
+max_node_count     = 2
+
+# ==============================================================================
+# NODE IMAGE (Optional - leave empty for automatic selection)
+# ==============================================================================
+node_image_ocid = "ocid1.image.oc1.ap-sydney-1.aaaaaaaaeoyqg3rw2ysklysrxjal3zbhmin4r5npnj3fdehw544itwskshoq"
 ```
 
 ### 2. Deploy Infrastructure
@@ -185,10 +283,10 @@ kubectl get pods -n visionone-filesecurity
 ### Infrastructure Components
 
 **Compute Resources:**
-- OKE cluster with Kubernetes v1.28+
-- Worker node pool with FSS-optimized configurations
-- Auto-scaling enabled (2-10 nodes)
-- VM.Standard.E4.Flex shapes (2 OCPU, 32GB RAM)
+- OKE cluster with Kubernetes v1.34.1
+- Worker node pool with FSS-optimized configurations  
+- Auto-scaling configurable (default: disabled, 1-2 nodes when enabled)
+- VM.Standard.E5.Flex shapes (1 OCPU, 16GB RAM, 50GB boot volume)
 
 **Networking:**
 - Private cluster endpoints for security
@@ -325,11 +423,12 @@ kubectl get events --sort-by=.metadata.creationTimestamp
 ## Configuration
 
 ### Cluster Settings
-- **Memory**: 32 GB per worker node
-- **CPU**: 2 OCPU per worker node
-- **Runtime**: Kubernetes v1.28+
-- **Shape**: VM.Standard.E4.Flex (flexible compute)
-- **Auto-scaling**: 2-10 nodes based on workload
+- **Memory**: 16 GB per worker node
+- **CPU**: 1 OCPU per worker node
+- **Runtime**: Kubernetes v1.34.1
+- **Shape**: VM.Standard.E5.Flex (flexible compute)
+- **Auto-scaling**: Optional (default: disabled, 1-2 nodes when enabled)
+- **Boot Volume**: 50 GB per worker node
 
 ### Environment Variables
 The FSS scanner uses these environment variables (configured during deployment):

@@ -212,6 +212,8 @@ max_node_count     = 2
 # NODE IMAGE (Optional - leave empty for automatic selection)
 # ==============================================================================
 
+# CLI command to get the list of valid image ids supported by the shape VM.Standard.E5.Flex
+
 oci compute image list \
     --compartment-id ocid1.compartment.oc1..aaaaaaaaw... \
     --shape VM.Standard.E5.Flex \

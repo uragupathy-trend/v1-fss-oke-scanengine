@@ -1,0 +1,56 @@
+# ==============================================================================
+# Terraform Variables for FSS OKE Scan Engine
+# ==============================================================================
+# Configuration file for OCI OKE cluster deployment for file security scanning
+# ==============================================================================
+
+# ==============================================================================
+# PROVIDER CONFIGURATION
+# ==============================================================================
+tenancy_ocid     = "ocid1.tenancy.oc1..aaaaaaaas......"
+user_ocid        = "ocid1.user.oc1..aaaaaaaam....."
+fingerprint      = "aa:bb:cc:dd:ee:ff:gg:hh:ii:jj:kk:ll:mm:nn:oo:pp"
+private_key_path = "~/.oci/oci_api_key.pem"
+region           = "ap-sydney-1"
+
+# ==============================================================================
+# INFRASTRUCTURE
+# ==============================================================================
+compartment_ocid           = "ocid1.compartment.oc1..aaaaaaaaws...."
+vcn_ocid                  = "ocid1.vcn.oc1.ap-sydney-1.amaaaaaa......."
+api_endpoint_subnet_ocid   = "ocid1.subnet.oc1.ap-sydney-1.aaaaaaaa........"
+worker_node_subnet_ocid    = "ocid1.subnet.oc1.ap-sydney-1.aaaaaaaav.........."
+load_balancer_subnet_ocid  = "ocid1.subnet.oc1.ap-sydney-1.aaaaaaaafs........"
+
+# ==============================================================================
+# CLUSTER CONFIGURATION
+# ==============================================================================
+cluster_name         = "fss-oke-scanengine"
+kubernetes_version   = "v1.34.1"
+environment         = "production"
+
+# ==============================================================================
+# NODE POOL CONFIGURATION
+# ==============================================================================
+node_pool_size = 1
+node_shape  = "VM.Standard.E5.Flex"
+node_memory_gb = 16
+node_shape_ocpus = 1
+node_boot_volume_size_gb = 50
+
+# ==============================================================================
+# AVAILABILITY DOMAINS
+# ==============================================================================
+availability_domains = ["availability_domains"]
+
+# ==============================================================================
+# SCALING CONFIGURATION
+# ==============================================================================
+enable_autoscaling = false
+min_node_count     = 1
+max_node_count     = 2
+
+# ==============================================================================
+# NODE IMAGE (Optional - leave empty for automatic selection)
+# ==============================================================================
+node_image_ocid = "ocid1.image.oc1.ap-sydney-1.aaaaaaaaeoyqg3rw2ysklysrxjal3zbhmin4r5npnj3fdehw544itwskshoq"

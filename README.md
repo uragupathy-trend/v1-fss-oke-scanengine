@@ -17,7 +17,7 @@ flowchart TB
         C3[Worker Node 3]
         C1 --> D
         C2 --> D
-        C3 --> D
+        D --> C3
     end
     
     subgraph Registry["OCIR Registry"]

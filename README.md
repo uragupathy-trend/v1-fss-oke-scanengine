@@ -520,5 +520,5 @@ The destroy operation includes safety confirmations:
 ---
 
 For more information about Vision One File Security and OKE, visit:
-- [Vision One File Security Documentation](https://docs.trendmicro.com/en-us/documentation/article/trend-vision-one-file-security)
+- [Vision One File Security Documentation](https://trendmicro.github.io/visionone-file-security-helm/)
 - [Oracle Kubernetes Engine Documentation](https://docs.oracle.com/en-us/iaas/Content/ContEng/home.htm)

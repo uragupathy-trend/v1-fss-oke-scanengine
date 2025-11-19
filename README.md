@@ -9,7 +9,10 @@ flowchart TB
     A[Application/User] --> B[Load Balancer]
     B --> C[OKE Cluster]
     C --> D[Vision One FSS Pods]
-   
+    D --> E[Vision One API]
+    E --> F[Scan Results]
+    F --> G[Object Storage]
+    F --> H[Application Response]
     
     subgraph OKE["OKE Cluster"]
         C1[Worker Node 1]
@@ -17,20 +20,27 @@ flowchart TB
         C3[Worker Node 3]
         C1 --> D
         C2 --> D
-        D --> C3
+        C3 --> D
     end
     
     subgraph Registry["OCIR Registry"]
         I[FSS Container Images]
     end
     
-    D --> I
+    I --> D
     
     style A fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
     style B fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
     style C fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
     style D fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
-  
+    style E fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
+    style F fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
+    style G fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
+    style H fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
+    style C1 fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
+    style C2 fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
+    style C3 fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
+    style I fill:#000000,stroke:#ffffff,stroke-width:4px,color:#ffffff
 ```
 
 **Components:**
